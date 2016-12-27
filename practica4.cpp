@@ -11,6 +11,10 @@
 #include <math.h>
 #include <fstream>
 
+#include "Vertex.h"
+#include "Face.h"
+#include "Normal.h"
+
 /** MACROS **/
 #define INITIAL_HEIGHT 1
 
