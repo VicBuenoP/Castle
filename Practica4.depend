@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1483039650 source:c:\users\tote\projects\castle\practica4.cpp
+1483205649 source:c:\users\tote\projects\castle\practica4.cpp
 	<GL/freeglut.h>
 	<cstdio>
 	<cstdlib>
@@ -19,7 +19,7 @@
 
 1482866000 c:\users\tote\projects\castle\include\normal.h
 
-1483039140 source:c:\users\tote\projects\castle\src\face.cpp
+1483206198 source:c:\users\tote\projects\castle\src\face.cpp
 	"Face.h"
 	<stdio.h>
 	<GL/freeglut.h>

@@ -114,7 +114,7 @@ void init(void)
     lista = glGenLists(1);
     glNewList(lista, GL_COMPILE);
         glPushMatrix();
-        glScalef(0.05f, 0.05f, 0.05f);
+        glScalef(0.1f, 0.1f, 0.1f);
         for (int i = 0; i<numFacesFortaleza; i++){
              facesFortaleza[i].render();
         }
