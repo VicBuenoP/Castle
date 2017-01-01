@@ -35,6 +35,8 @@ using namespace std;
 
 GLdouble alpha = 0, beta = 0;
 GLdouble eyex = -5, eyey;
+GLuint listaMuralla;
+GLuint texturaCielo;
 
 /** Function headers **/
 void init(void);
@@ -44,10 +46,9 @@ void keyboard(unsigned char key, int x, int y);
 void mouse(int button, int state, int x, int y);
 int parseFile(const char *filename, Face **faces);
 void specialKeys(int key, int x, int y);
-int lista;
+void generateListMuralla();
 void idle(void);
 
-GLuint texturaCielo;
 
 /** Main Function **/
 int main(int argc, char** argv)
@@ -103,13 +104,15 @@ void init(void)
     ilDeleteImages(1, &imgid);
     glGenTextures(1, &texturaCielo);
     glBindTexture(GL_TEXTURE_2D, texturaCielo);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ancho, alto, 0,  GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-    Face *facesFortaleza;
+
+
+    /*Face *facesFortaleza;
     int numFacesFortaleza = parseFile("fortaleza.ase", &facesFortaleza);
     lista = glGenLists(1);
     glNewList(lista, GL_COMPILE);
@@ -119,7 +122,9 @@ void init(void)
              facesFortaleza[i].render();
         }
         glPopMatrix();
-    glEndList();
+    glEndList();*/
+
+    generateListMuralla();
 }
 
 void display(void)
@@ -150,7 +155,24 @@ void display(void)
               1);
 
     glColor3ub(255, 255, 255);
-    glCallList(lista);
+    glCallList(listaMuralla);
+
+    glDisable(GL_LIGHTING);
+    glLineWidth(3);
+    glPushMatrix();
+    glBegin(GL_LINES);
+        glColor3ub(255, 0, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(3, 0, 0);
+        glColor3ub(0, 255, 0);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0,3,0);
+        glColor3ub(0, 0, 255);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0,0,3);
+    glEnd();
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
     glutSwapBuffers();
 }
 
@@ -276,4 +298,163 @@ int parseFile(const char *filename, Face **faces){
     return numFaces;
 }
 
+void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *vertex3){
+    float px = vertex2[0] - vertex1[0];
+    float py = vertex2[1] - vertex1[1];
+    float pz = vertex2[2] - vertex1[2];
+    float qx = vertex3[0] - vertex1[0];
+    float qy = vertex3[1] - vertex1[1];
+    float qz = vertex3[2] - vertex1[2];
+    float nx = py*qz - pz*qy;
+    float ny = -px*qz + pz*qx;
+    float nz = px*qy - py*qx;
+    float nmod = sqrt(nx*nx+ny*ny+nz*nz);
+    normal[0] = nx / nmod;
+    normal[1] = ny / nmod;
+    normal[2] = nz / nmod;
+}
+
+void generateListMuralla(){
+
+    listaMuralla = glGenLists(1);
+    // Face 1 muralla
+    GLfloat coordsFaceLateral[][3] = {
+        {0, 0, 0},
+        {0, 0, 50},
+        {5, 0, 50},
+        {5, 0, 45},
+        {10, 0, 45},
+        {10, 0, 0}
+    };
+    GLfloat coordsFace2[][3] = {
+        {0, 0, 0},
+        {0, 10, 0},
+        {0, 10, 50},
+        {0, 0, 50}
+    };
+
+    GLfloat coordsFace3[][3] = {
+        {0, 0, 0},
+        {0, 10, 0},
+        {0, 10, 45},
+        {0, 0, 45}
+    };
+
+    GLfloat coordsFace4[][3] = {
+        {0, 0, 0},
+        {0, 10, 0},
+        {0, 10, 5},
+        {0, 0, 5}
+    };
+
+    GLfloat coordsFace5[][3] = {
+        {0, 0, 0},
+        {0, 10, 0},
+        {-5, 10, 0},
+        {-5, 0, 0}
+    };
+
+
+    GLfloat normalFaceLateral[3];
+    GLfloat normalFace2[3];
+    GLfloat normalFace3[3];
+    GLfloat normalFace4[3];
+    GLfloat normalFace5[3];
+    calcNormal(normalFaceLateral, coordsFaceLateral[0], coordsFaceLateral[1], coordsFaceLateral[2]);
+    calcNormal(normalFace2, coordsFace2[0], coordsFace2[1], coordsFace2[2]);
+    calcNormal(normalFace3, coordsFace3[0], coordsFace3[1], coordsFace3[2]);
+    calcNormal(normalFace4, coordsFace4[0], coordsFace4[1], coordsFace4[2]);
+    calcNormal(normalFace5, coordsFace5[0], coordsFace5[1], coordsFace5[2]);
+    glNewList(listaMuralla, GL_COMPILE);
+        // Dibujado de los laterales de la muralla
+        glBegin(GL_POLYGON);
+        glNormal3fv(normalFaceLateral);
+        glTexCoord2f(0, 0);
+        glVertex3fv(coordsFaceLateral[0]);
+        glTexCoord2f(1, 0);
+        glVertex3fv(coordsFaceLateral[1]);
+        glVertex3fv(coordsFaceLateral[2]);
+        glVertex3fv(coordsFaceLateral[3]);
+        glTexCoord2f(1, 1);
+        glVertex3fv(coordsFaceLateral[4]);
+        glTexCoord2f(0, 1);
+        glVertex3fv(coordsFaceLateral[5]);
+        glEnd();
+
+        glPushMatrix();
+            glTranslatef(0, -10, 0);
+            normalFaceLateral[0] *= -1;
+            normalFaceLateral[1] *= -1;
+            normalFaceLateral[2] *= -1;
+            glBegin(GL_POLYGON);
+            glNormal3fv(normalFaceLateral);
+            glTexCoord2f(0, 0);
+            glVertex3fv(coordsFaceLateral[0]);
+            glTexCoord2f(1, 0);
+            glVertex3fv(coordsFaceLateral[1]);
+            glTexCoord2f(1, 1);
+            glVertex3fv(coordsFaceLateral[2]);
+
+            glVertex3fv(coordsFaceLateral[3]);
+
+            glVertex3fv(coordsFaceLateral[4]);
+            glTexCoord2f(0, 1);
+            glVertex3fv(coordsFaceLateral[5]);
+            glEnd();
+        glPopMatrix();
+
+        // Dibujado de los frontales
+        glPushMatrix();
+            glRotatef(180, 0, 0, 1);
+            glBegin(GL_POLYGON);
+                glNormal3fv(normalFace2);
+                glTexCoord2f(0, 0);
+                glVertex3fv(coordsFace2[0]);
+                glTexCoord2f(1, 0);
+                glVertex3fv(coordsFace2[1]);
+                glTexCoord2f(1, 1);
+                glVertex3fv(coordsFace2[2]);
+                glTexCoord2f(0, 1);
+                glVertex3fv(coordsFace2[3]);
+            glEnd();
+        glPopMatrix();
+        glPushMatrix();
+            glTranslatef(10, -10, 0);
+            glBegin(GL_POLYGON);
+            glNormal3fv(normalFace3);
+            for(int i = 0; i < sizeof(coordsFace3) / (sizeof(GLfloat) * 3) ; i++){
+                glVertex3fv(coordsFace3[i]);
+            }
+            glEnd();
+        glPopMatrix();
+
+        glPushMatrix();
+            glTranslatef(5, -10, 45);
+            glBegin(GL_POLYGON);
+            glNormal3fv(normalFace4);
+            for(int i = 0; i < sizeof(coordsFace4) / (sizeof(GLfloat) * 3) ; i++){
+                glVertex3fv(coordsFace4[i]);
+            }
+            glEnd();
+        glPopMatrix();
+
+        glPushMatrix();
+            glTranslatef(5, -10, 50);
+            glBegin(GL_POLYGON);
+            glNormal3fv(normalFace5);
+            for(int i = 0; i < sizeof(coordsFace5) / (sizeof(GLfloat) * 3) ; i++){
+                glVertex3fv(coordsFace5[i]);
+            }
+            glEnd();
+            glTranslatef(5, 0, -5);
+            glBegin(GL_POLYGON);
+            glNormal3fv(normalFace5);
+            for(int i = 0; i < sizeof(coordsFace5) / (sizeof(GLfloat) * 3) ; i++){
+                glVertex3fv(coordsFace5[i]);
+            }
+            glEnd();
+        glPopMatrix();
+
+    glEndList();
+}
 
