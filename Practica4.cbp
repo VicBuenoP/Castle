@@ -39,6 +39,7 @@
 		<Unit filename="include/Normal.h" />
 		<Unit filename="include/Vertex.h" />
 		<Unit filename="nube.jpg" />
+		<Unit filename="pozo.ase" />
 		<Unit filename="practica4.cpp" />
 		<Unit filename="src/Face.cpp" />
 		<Unit filename="src/Normal.cpp" />

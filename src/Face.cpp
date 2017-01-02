@@ -23,14 +23,6 @@ void Face::render()
     this->normal->render();
     for(i = 0; i < numVertex; i++)
     {
-        if(i == 0){
-            glTexCoord2f(0.0, 0.0);
-        }else if(i == 1){
-            glTexCoord2f(0.5, 1.0);
-        }else{
-            glTexCoord2f(1.0, 1.0);
-        }
-
         this->vertex[i].render();
     }
     glEnd();
