@@ -59,9 +59,12 @@ enum CameraType {
 };
 
 GLdouble alpha = 0, beta = 0, alpha_rot = 0, beta_rot = 0;
+bool plane_mode = false;
+int screen_width, screen_height;
+int mouse_x, mouse_y;
 GLdouble eyex = -5, eyey;
-GLuint listaMuralla,listaTorre,listaFortaleza,listaPozo;
-GLuint texturaCielo;
+GLuint listaMuralla,listaTorre,listaFortaleza,listaPozo,listaCasa1,listaCasa2, listaSuelo, listaCielo;
+GLuint texturaPiedra, texturaCielo, texturaTierra;
 CameraType camara = FP_CAM;
 struct CameraCoords fp_coords = {0, 0, INITIAL_HEIGHT, 0, 0, 0},
     rot_coords = {15, -19, INITIAL_HEIGHT, 0, 0, 0},
@@ -83,10 +86,19 @@ void specialKey(int key, int x, int y);
 void specialKeyUp(int key, int x, int y);
 void keyops();
 void mouse(int button, int state, int x, int y);
+void mouseMotion(int x, int y);
+
+
+void setOrthographicProjection();
+void resetPerspectiveProjection();
+void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data);
+GLuint loadTexture(const char *filename);
 int parseFile(const char *filename, Face **faces);
 int getListAse(const char *filename);
 void generateListMuralla();
 void generateListTorre();
+void generateListSuelo();
+void generateListCielo();
 void idle(void);
 void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *vertex3);
 struct CameraCoords recalculateCamera();
@@ -112,6 +124,7 @@ int main(int argc, char** argv)
     glutSpecialFunc(specialKey);
     glutSpecialUpFunc(specialKeyUp);
     glutMouseFunc(mouse);
+    glutPassiveMotionFunc(mouseMotion);
     glutIdleFunc(idle);
 
     glutMainLoop();
@@ -143,29 +156,48 @@ void init(void)
     glutIgnoreKeyRepeat(1);
     memset(keyPressed, 0, sizeof(keyPressed)); // Establecer todos los valores de teclado a False
     memset(specialPressed, 0, sizeof(specialPressed));
+    glutSetCursor(GLUT_CURSOR_NONE);
 
     /* Carga de texturas */
+
+    texturaPiedra = loadTexture("stone.jpg");
+    texturaCielo = loadTexture("nube.jpg");
+    texturaTierra = loadTexture("tierra.jpg");
+
+    generateListMuralla();
+    generateListTorre();
+    generateListSuelo();
+    generateListCielo();
+    listaFortaleza = getListAse("fortaleza.ase");
+    listaPozo = getListAse("pozo.ase");
+    listaCasa1 = getListAse("casa1.ase");
+    listaCasa2 = getListAse("casa2.ase");
+}
+
+void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data){
     ILuint imgid;
     ilGenImages(1, &imgid);
     ilBindImage(imgid);
-    ilLoadImage((const ILstring)"stone.jpg");
+    ilLoadImage((const ILstring)filename);
     ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-    ILuint ancho = ilGetInteger(IL_IMAGE_WIDTH);
-    ILuint alto = ilGetInteger(IL_IMAGE_HEIGHT);
-    ILubyte *data = ilGetData();
+    *width = ilGetInteger(IL_IMAGE_WIDTH);
+    *height = ilGetInteger(IL_IMAGE_HEIGHT);
+    *data = ilGetData();
     ilDeleteImages(1, &imgid);
-    glGenTextures(1, &texturaCielo);
-    glBindTexture(GL_TEXTURE_2D, texturaCielo);
+}
+
+GLuint loadTexture(const char *filename){
+    GLuint width, height, textura;
+    ILubyte *data;
+    loadImage(filename, &width, &height, &data);
+    glGenTextures(1, &textura);
+    glBindTexture(GL_TEXTURE_2D, textura);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ancho, alto, 0,  GL_RGBA, GL_UNSIGNED_BYTE, data);
-
-    generateListMuralla();
-    generateListTorre();
-    listaFortaleza = getListAse("fortaleza.ase");
-    listaPozo = getListAse("pozo.ase");
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0,  GL_RGBA, GL_UNSIGNED_BYTE, data);
+    return textura;
 }
 
 void display(void)
@@ -183,19 +215,18 @@ void display(void)
 
     struct CameraCoords cam = recalculateCamera();
 
-
-     // Posicionado de la cámara
     // Posicionado de la cámara
-    gluLookAt(cam.eye_x, // Coordenada X de la cámara
-              cam.eye_y, // Coordenada Y de la cámara
-              cam.eye_z, // Coordenada Z de la cámara
-              cam.at_x, /* Puntos donde mira la cámara */
-              cam.at_y,
-              cam.at_z,
-              0.0, /* Orientación de la cámara */
-              0.0,
-              1);
-
+    // Posicionado de la cámara
+    gluLookAt(
+        cam.eye_x, // Coordenada X de la cámara
+        cam.eye_y, // Coordenada Y de la cámara
+        cam.eye_z, // Coordenada Z de la cámara
+        cam.at_x, /* Puntos donde mira la cámara */
+        cam.at_y,
+        cam.at_z,
+        0.0, /* Orientación de la cámara */
+        0.0,
+        1);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition[0]); // a la luz 0
     glLightfv(GL_LIGHT1, GL_POSITION, lightPosition[1]); // a la luz 1
     glLightfv(GL_LIGHT2, GL_POSITION, lightPosition[2]); // a la luz 2
@@ -203,6 +234,11 @@ void display(void)
 
     glEnable(GL_TEXTURE_2D);
     glColor3ub(255, 255, 255);
+    glPushMatrix();
+    glCallList(listaSuelo);
+    glCallList(listaCielo);
+    glPopMatrix();
+
     glPushMatrix();
     glTranslatef(-20, DISTANCIA_LATERAL, 0);
     for(int i = 0; i < 4; i++){
@@ -232,6 +268,26 @@ void display(void)
     glCallList(listaPozo);
     glPopMatrix();
 
+    glPushMatrix();
+    glTranslatef(5,DISTANCIA_LATERAL-10, 0);
+    glRotatef(-30, 0, 0, 1);
+    glScalef(0.02, 0.02, 0.02);
+    glCallList(listaCasa2);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(40,DISTANCIA_LATERAL-6, 0);
+    glScalef(0.03, 0.03, 0.03);
+    glCallList(listaCasa1);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(30, -DISTANCIA_LATERAL+3, 0);
+    glRotatef(180, 0 , 0, 1);
+    glScalef(0.03, 0.03, 0.03);
+    glCallList(listaCasa1);
+    glPopMatrix();
+
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
     glLineWidth(3);
@@ -255,6 +311,8 @@ void display(void)
 /* Funcion que se llamara cada vez que se redimensione la ventana */
 void reshape(int w, int h)
 {
+    screen_width = w;
+    screen_height = h;
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -307,7 +365,13 @@ void keyops(){
     if (keyPressed['c'] || keyPressed['C']){
         camara = (CameraType)((camara + 1) % NUM_CAMS);
         keyPressed['c'] = false;
-        keyPressed['Cº'] = false;
+        keyPressed['C'] = false;
+    }
+
+    if (keyPressed['p'] || keyPressed['P']){
+        plane_mode = true;
+        keyPressed['p'] = false;
+        keyPressed['P'] = false;
     }
 
     /* Teclas especiales */
@@ -339,7 +403,54 @@ void keyops(){
 
 void mouse(int button, int state, int x, int y)
 {
+    if (button == GLUT_LEFT_BUTTON)
+    {
+        // Reinicio a 0,0 (tetera lado)
+        beta = INITIAL_BETA;
+    }
+    if (button == GLUT_RIGHT_BUTTON){
+        alpha = INITIAL_ALPHA;
+    }
     glutPostRedisplay();
+}
+
+void mouseMotion(int x, int y){
+    if (camara == FP_CAM){
+        if (x < mouse_x || x == 0){
+            alpha += ANGLE_INCREMENT * 2;
+        }else if (x >  mouse_x || x == screen_width - 1){
+            alpha -= ANGLE_INCREMENT * 2;
+        }
+
+        if (y < mouse_y || y == 0){
+            beta += ANGLE_INCREMENT;
+        }else if (y > mouse_y || y == screen_height){
+            beta -= ANGLE_INCREMENT;
+        }
+        mouse_x = x;
+        mouse_y = y;
+    }else{
+        mouse_x = 0;
+        mouse_y = 0;
+    }
+    glutPostRedisplay();
+}
+
+void setOrthographicProjection(){
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, screen_width, screen_height, 0);
+    glMatrixMode(GL_MODELVIEW);
+}
+void resetPerspectiveProjection(){
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void idle(void)
@@ -493,6 +604,7 @@ void generateListMuralla(){
     calcNormal(normalAlmena2, coordsAlmena2[0], coordsAlmena2[1], coordsAlmena2[2]);
     calcNormal(normalAlmena3, coordsAlmena3[0], coordsAlmena3[1], coordsAlmena3[2]);
     glNewList(listaMuralla, GL_COMPILE);
+        glBindTexture(GL_TEXTURE_2D, texturaPiedra);
         /** Primitivas del muro **/
         glPushMatrix();
             for(int i = 0; i < 2; i++){
@@ -630,6 +742,55 @@ void generateListTorre(){
                 glVertex3fv(coordsTapa[j]);
             }
             glEnd();
+        glPopMatrix();
+    glEndList();
+}
+
+void generateListSuelo(){
+    listaSuelo = glGenLists(1);
+    GLfloat coordsSuelo[][3] = {
+        {0,0,0},
+        {0,-100000,0},
+        {100000,100000,0},
+        {-100000,0,0},
+    };
+    GLfloat normalSuelo[3];
+    calcNormal(normalSuelo, coordsSuelo[0], coordsSuelo[1], coordsSuelo[2]);
+    glNewList(listaSuelo, GL_COMPILE);
+        glBindTexture(GL_TEXTURE_2D, texturaTierra);
+        glPushMatrix();
+        glBegin(GL_QUADS);
+        glNormal3fv(normalSuelo);
+         for(int j = 0; j < COORDS_ITERATIONS(coordsSuelo); j++){
+            glTexCoord2f(coordsSuelo[j][0]/2, coordsSuelo[j][1]/2);
+            glVertex3fv(coordsSuelo[j]);
+        }
+        glEnd();
+        glPopMatrix();
+    glEndList();
+}
+
+void generateListCielo(){
+    listaCielo = glGenLists(1);
+    GLfloat coordsCielo[][3] = {
+        {0,0,0},
+        {0,100000,0},
+        {-100000,-100000,0},
+        {100000,0,0},
+    };
+    GLfloat normalCielo[3];
+    calcNormal(normalCielo, coordsCielo[0], coordsCielo[1], coordsCielo[2]);
+    glNewList(listaCielo, GL_COMPILE);
+        glBindTexture(GL_TEXTURE_2D, texturaCielo);
+        glPushMatrix();
+        glTranslatef(0,0,100);
+        glBegin(GL_QUADS);
+        glNormal3fv(normalCielo);
+         for(int j = 0; j < COORDS_ITERATIONS(coordsCielo); j++){
+            glTexCoord2f(coordsCielo[j][0]/100, coordsCielo[j][1]/100);
+            glVertex3fv(coordsCielo[j]);
+        }
+        glEnd();
         glPopMatrix();
     glEndList();
 }

@@ -34,6 +34,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="casa1.ase" />
+		<Unit filename="casa2.ase" />
 		<Unit filename="fortaleza.ase" />
 		<Unit filename="include/Face.h" />
 		<Unit filename="include/Normal.h" />
@@ -45,6 +47,7 @@
 		<Unit filename="src/Normal.cpp" />
 		<Unit filename="src/Vertex.cpp" />
 		<Unit filename="stone.jpg" />
+		<Unit filename="tierra.jpg" />
 		<Extensions>
 			<code_completion />
 			<envvars />
