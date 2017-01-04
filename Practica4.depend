@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1483481458 source:c:\users\tote\projects\castle\practica4.cpp
+1483561888 source:c:\users\tote\projects\castle\practica4.cpp
 	<GL/freeglut.h>
 	<cstdio>
 	<cstdlib>
@@ -7,19 +7,21 @@
 	<math.h>
 	<fstream>
 	<IL/ilut.h>
+	<SDL/SDL.h>
+	<SDL/SDL_mixer.h>
 	"Vertex.h"
 	"Face.h"
 	"Normal.h"
 
-1482866038 c:\users\tote\projects\castle\include\vertex.h
+1483557455 c:\users\tote\projects\castle\include\vertex.h
 
 1483039157 c:\users\tote\projects\castle\include\face.h
 	"Vertex.h"
 	"Normal.h"
 
-1482866000 c:\users\tote\projects\castle\include\normal.h
+1483557395 c:\users\tote\projects\castle\include\normal.h
 
-1483394040 source:c:\users\tote\projects\castle\src\face.cpp
+1483558461 source:c:\users\tote\projects\castle\src\face.cpp
 	"Face.h"
 	<stdio.h>
 	<GL/freeglut.h>

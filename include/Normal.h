@@ -14,7 +14,7 @@ class Normal
         virtual ~Normal(); // Destructor
         void render(); // Pintado
 
-    private:
+    public:
         float x,y,z; // Coordenadas
 };
 

@@ -34,20 +34,23 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="casa1.ase" />
-		<Unit filename="casa2.ase" />
-		<Unit filename="fortaleza.ase" />
+		<Unit filename="ases/casa1.ase" />
+		<Unit filename="ases/casa2.ase" />
+		<Unit filename="ases/fortaleza.ase" />
+		<Unit filename="ases/pozo.ase" />
+		<Unit filename="img/arenisca.jpg" />
+		<Unit filename="img/nube.jpg" />
+		<Unit filename="img/stone.jpg" />
+		<Unit filename="img/tierra.jpg" />
 		<Unit filename="include/Face.h" />
 		<Unit filename="include/Normal.h" />
 		<Unit filename="include/Vertex.h" />
-		<Unit filename="nube.jpg" />
-		<Unit filename="pozo.ase" />
 		<Unit filename="practica4.cpp" />
+		<Unit filename="sound/camelot.mp3" />
+		<Unit filename="sound/pasos.wav" />
 		<Unit filename="src/Face.cpp" />
 		<Unit filename="src/Normal.cpp" />
 		<Unit filename="src/Vertex.cpp" />
-		<Unit filename="stone.jpg" />
-		<Unit filename="tierra.jpg" />
 		<Extensions>
 			<code_completion />
 			<envvars />

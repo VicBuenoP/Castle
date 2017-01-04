@@ -14,7 +14,7 @@ class Vertex
         virtual ~Vertex(); // Destructor
         void render(); // Función de pintado
         void printVertex(); // Funcion auxiliar para pintar las coordenadas del vértice
-    private:
+    public:
         double x, y, z; // Coordenadas
 };
 

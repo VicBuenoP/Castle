@@ -11,10 +11,13 @@
 #include <math.h>
 #include <fstream>
 #include <IL/ilut.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 
 #include "Vertex.h"
 #include "Face.h"
 #include "Normal.h"
+
 
 /** MACROS **/
 #define ANGLE_INCREMENT 0.01
@@ -30,6 +33,22 @@
 #define FRENTE_ELEMENTS (15)
 #define DISTANCIA_FRONTAL (((MURALLA_ELEMENTS) * 5) - 20)
 #define DISTANCIA_LATERAL ((FRENTE_ELEMENTS / 2) * 5)
+
+/** File paths **/
+
+#define STONE_TEX "img/stone.jpg"
+#define ARENISCA_TEX "img/arenisca.jpg"
+#define CIELO_TEX "img/nube.jpg"
+#define TIERRA_TEX "img/tierra.jpg"
+
+#define CASA1_ASE "ases/casa1.ase"
+#define CASA2_ASE "ases/casa2.ase"
+#define FORTALEZA_ASE "ases/fortaleza.ase"
+#define POZO_ASE "ases/pozo.ase"
+
+#define MUSIC_SOUND "sound/camelot.mp3"
+#define PASOS_SOUND "sound/pasos.wav"
+
 
 /** COORDS CALC MACROS **/
 #define SIN_INCREMENT (STEP_INCREMENT * sin(alpha))
@@ -64,7 +83,7 @@ int screen_width, screen_height;
 int mouse_x, mouse_y;
 GLdouble eyex = -5, eyey;
 GLuint listaMuralla,listaTorre,listaFortaleza,listaPozo,listaCasa1,listaCasa2, listaSuelo, listaCielo;
-GLuint texturaPiedra, texturaCielo, texturaTierra;
+GLuint texturaPiedra, texturaCielo, texturaTierra, texturaArenisca;
 CameraType camara = FP_CAM;
 struct CameraCoords fp_coords = {0, 0, INITIAL_HEIGHT, 0, 0, 0},
     rot_coords = {15, -19, INITIAL_HEIGHT, 0, 0, 0},
@@ -74,6 +93,10 @@ struct CameraCoords fp_coords = {0, 0, INITIAL_HEIGHT, 0, 0, 0},
     c4_coords = {-20, -DISTANCIA_LATERAL, 30, DISTANCIA_LATERAL - 20, 0, 0};
 bool keyPressed[256];
 bool specialPressed[256];
+Mix_Music *musica;
+bool playing_music = true;
+Mix_Chunk *pasos;
+int canal;
 
 
 /** Function headers **/
@@ -102,6 +125,7 @@ void generateListCielo();
 void idle(void);
 void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *vertex3);
 struct CameraCoords recalculateCamera();
+void playPasos();
 
 
 /** Main Function **/
@@ -148,6 +172,10 @@ void init(void)
     glShadeModel(GL_SMOOTH);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_NORMALIZE);
+
+    SDL_Init(SDL_INIT_AUDIO);
+    Mix_OpenAudio(22050, AUDIO_S16, 2, 512);
+
     glClearColor(1, 1, 1, 1);
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
@@ -160,18 +188,23 @@ void init(void)
 
     /* Carga de texturas */
 
-    texturaPiedra = loadTexture("stone.jpg");
-    texturaCielo = loadTexture("nube.jpg");
-    texturaTierra = loadTexture("tierra.jpg");
+    texturaPiedra = loadTexture(STONE_TEX);
+    texturaCielo = loadTexture(CIELO_TEX);
+    texturaTierra = loadTexture(TIERRA_TEX);
+    texturaArenisca = loadTexture(ARENISCA_TEX);
 
     generateListMuralla();
     generateListTorre();
     generateListSuelo();
     generateListCielo();
-    listaFortaleza = getListAse("fortaleza.ase");
-    listaPozo = getListAse("pozo.ase");
-    listaCasa1 = getListAse("casa1.ase");
-    listaCasa2 = getListAse("casa2.ase");
+    listaFortaleza = getListAse(FORTALEZA_ASE);
+    listaPozo = getListAse(POZO_ASE);
+    listaCasa1 = getListAse(CASA1_ASE);
+    listaCasa2 = getListAse(CASA2_ASE);
+
+    musica = Mix_LoadMUS(MUSIC_SOUND);
+    Mix_PlayMusic(musica,-1);
+    pasos = Mix_LoadWAV(PASOS_SOUND);
 }
 
 void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data){
@@ -240,6 +273,7 @@ void display(void)
     glPopMatrix();
 
     glPushMatrix();
+    glBindTexture(GL_TEXTURE_2D, texturaPiedra);
     glTranslatef(-20, DISTANCIA_LATERAL, 0);
     for(int i = 0; i < 4; i++){
         int lim = MURALLA_ELEMENTS;
@@ -255,6 +289,8 @@ void display(void)
     }
     glPopMatrix();
 
+    glDisable(GL_TEXTURE_2D);
+    glColor3ub(104, 105, 91);
     glPushMatrix();
     glTranslatef(DISTANCIA_FRONTAL - 25, DISTANCIA_LATERAL / 4, 0);
     glScalef(0.03,0.03,0.03);
@@ -262,12 +298,7 @@ void display(void)
     glCallList(listaFortaleza);
     glPopMatrix();
 
-    glPushMatrix();
-    glTranslatef(10, -20, 0);
-    glScalef(0.03,0.03,0.03);
-    glCallList(listaPozo);
-    glPopMatrix();
-
+    glDisable(GL_TEXTURE_2D);
     glPushMatrix();
     glTranslatef(5,DISTANCIA_LATERAL-10, 0);
     glRotatef(-30, 0, 0, 1);
@@ -275,6 +306,7 @@ void display(void)
     glCallList(listaCasa2);
     glPopMatrix();
 
+    glColor3ub(130, 82, 1);
     glPushMatrix();
     glTranslatef(40,DISTANCIA_LATERAL-6, 0);
     glScalef(0.03, 0.03, 0.03);
@@ -286,6 +318,15 @@ void display(void)
     glRotatef(180, 0 , 0, 1);
     glScalef(0.03, 0.03, 0.03);
     glCallList(listaCasa1);
+    glPopMatrix();
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaArenisca);
+    glColor3ub(255, 255, 255);
+    glPushMatrix();
+    glTranslatef(10, -20, 0);
+    glScalef(0.03,0.03,0.03);
+    glCallList(listaPozo);
     glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
@@ -347,18 +388,22 @@ void keyops(){
     if (keyPressed['w'] || keyPressed['W']){
         fp_coords.eye_x += COS_INCREMENT;
         fp_coords.eye_y += SIN_INCREMENT;
+        playPasos();
     }
     if (keyPressed['s'] || keyPressed['S']){
         fp_coords.eye_x -= COS_INCREMENT;
         fp_coords.eye_y -= SIN_INCREMENT;
+        playPasos();
     }
     if (keyPressed['d'] || keyPressed['D']){
         fp_coords.eye_x += SIN_INCREMENT;
         fp_coords.eye_y -= COS_INCREMENT;
+        playPasos();
     }
     if (keyPressed['a'] || keyPressed['A']){
         fp_coords.eye_x -= SIN_INCREMENT;
         fp_coords.eye_y += COS_INCREMENT;
+        playPasos();
     }
 
     // Cambio de camara
@@ -372,6 +417,17 @@ void keyops(){
         plane_mode = true;
         keyPressed['p'] = false;
         keyPressed['P'] = false;
+    }
+
+    if (keyPressed['m'] || keyPressed['M']){
+        keyPressed['m'] = false;
+        keyPressed['M'] = false;
+        if(playing_music){
+            Mix_HaltMusic();
+        }else{
+            Mix_PlayMusic(musica , -1);
+        }
+        playing_music = !playing_music;
     }
 
     /* Teclas especiales */
@@ -825,5 +881,11 @@ struct CameraCoords recalculateCamera(){
         return c4_coords;
     case ROT_CAM:
         return rot_coords;
+    }
+}
+
+void playPasos(){
+    if (!Mix_Playing(canal)){
+        canal = Mix_PlayChannel(-1, pasos, 0);
     }
 }
