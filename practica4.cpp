@@ -424,7 +424,7 @@ void mouseMotion(int x, int y){
 
         if (y < mouse_y || y == 0){
             beta += ANGLE_INCREMENT;
-        }else if (y > mouse_y || y == screen_height){
+        }else if (y > mouse_y || y == screen_height - 1){
             beta -= ANGLE_INCREMENT;
         }
         mouse_x = x;
