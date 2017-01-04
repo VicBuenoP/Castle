@@ -459,9 +459,7 @@ void keyops(){
 
 void mouse(int button, int state, int x, int y)
 {
-    if (button == GLUT_LEFT_BUTTON)
-    {
-        // Reinicio a 0,0 (tetera lado)
+    if (button == GLUT_LEFT_BUTTON){
         beta = INITIAL_BETA;
     }
     if (button == GLUT_RIGHT_BUTTON){
