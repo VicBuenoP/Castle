@@ -78,6 +78,8 @@ enum CameraType {
     NUM_CAMS // Elemento para contar las cámaras disponibles
 };
 
+
+/** VARIABLES GLOBALES **/
 GLdouble alpha = 0, beta = 0, alpha_rot = 0, beta_rot = 0;
 bool plane_mode = false;
 int screen_width, screen_height;
@@ -100,7 +102,7 @@ Mix_Chunk *pasos;
 int canal;
 
 
-/** Function headers **/
+/** OPENGL HANDLERS **/
 void init(void);
 void display(void);
 void reshape(int w, int h);
@@ -112,9 +114,8 @@ void keyops();
 void mouse(int button, int state, int x, int y);
 void mouseMotion(int x, int y);
 
+/** FUNCTION HEADERS **/
 void showObjects();
-void setOrthographicProjection();
-void resetPerspectiveProjection();
 void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data);
 GLuint loadTexture(const char *filename);
 int parseFile(const char *filename, Face **faces);
@@ -161,16 +162,16 @@ int main(int argc, char** argv)
 /** Internal function defintion **/
 void init(void)
 {
-    GLfloat difusa[] = { 1.0f, 1.0f, 1.0f, 1.0f}; // luz blanca
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, difusa); // Se asignan los parámetros
+    GLfloat difusa[] = { 1.0f, 1.0f, 1.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, difusa);
     glLightfv(GL_LIGHT1, GL_DIFFUSE, difusa);
     glLightfv(GL_LIGHT2, GL_DIFFUSE, difusa);
     glLightfv(GL_LIGHT3, GL_DIFFUSE, difusa);
-    glEnable(GL_LIGHT0); // Se “enciende” la luz 0
+    glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
     glEnable(GL_LIGHT2);
     glEnable(GL_LIGHT3);
-    glEnable(GL_LIGHTING); // Se activan los cálculos de la iluminación
+    glEnable(GL_LIGHTING);
     glShadeModel(GL_SMOOTH);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_NORMALIZE);
@@ -184,17 +185,17 @@ void init(void)
     glEnable(GL_DEPTH_TEST);
     glutFullScreen();
     glutIgnoreKeyRepeat(1);
-    memset(keyPressed, 0, sizeof(keyPressed)); // Establecer todos los valores de teclado a False
+    memset(keyPressed, 0, sizeof(keyPressed));
     memset(specialPressed, 0, sizeof(specialPressed));
     glutSetCursor(GLUT_CURSOR_NONE);
 
     /* Carga de texturas */
-
     texturaPiedra = loadTexture(STONE_TEX);
     texturaCielo = loadTexture(CIELO_TEX);
     texturaTierra = loadTexture(TIERRA_TEX);
     texturaArenisca = loadTexture(ARENISCA_TEX);
 
+    /* Generacion de listas de objetos */
     generateListMuralla();
     generateListTorre();
     generateListSuelo();
@@ -204,11 +205,15 @@ void init(void)
     listaCasa1 = getListAse(CASA1_ASE);
     listaCasa2 = getListAse(CASA2_ASE);
 
+    /* Musica */
     musica = Mix_LoadMUS(MUSIC_SOUND);
     Mix_PlayMusic(musica,-1);
     pasos = Mix_LoadWAV(PASOS_SOUND);
 }
 
+/**
+* Funcion de carga de una imagen a partir de un fichero
+*/
 void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data){
     ILuint imgid;
     ilGenImages(1, &imgid);
@@ -221,6 +226,10 @@ void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **da
     ilDeleteImages(1, &imgid);
 }
 
+/**
+* Funcion de carga de una textura.
+* Carga y configura una textura a partir de un fichero de imagen
+*/
 GLuint loadTexture(const char *filename){
     GLuint width, height, textura;
     ILubyte *data;
@@ -235,18 +244,23 @@ GLuint loadTexture(const char *filename){
     return textura;
 }
 
+/**
+* Funcion de dibujado de los objetos en pantalla
+*/
 void showObjects(){
+    // Posición de los focos de luz
     GLfloat lightPosition[][4] = {
     { -20.0f, DISTANCIA_LATERAL, 20.0f, 0},
     { DISTANCIA_FRONTAL, DISTANCIA_LATERAL, 20.0f, 0},
     { DISTANCIA_FRONTAL, -DISTANCIA_LATERAL, 20.0f, 0},
     { -20.0f, -DISTANCIA_LATERAL, 20.0f, 0}
-    }; // posición en la escena
+    };
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition[0]); // a la luz 0
     glLightfv(GL_LIGHT1, GL_POSITION, lightPosition[1]); // a la luz 1
     glLightfv(GL_LIGHT2, GL_POSITION, lightPosition[2]); // a la luz 2
     glLightfv(GL_LIGHT3, GL_POSITION, lightPosition[3]); // a la luz 3
 
+    // Dibujado del cielo y el suelo
     glEnable(GL_TEXTURE_2D);
     glColor3ub(255, 255, 255);
     glPushMatrix();
@@ -254,6 +268,7 @@ void showObjects(){
     glCallList(listaCielo);
     glPopMatrix();
 
+    // Dibujado de la muralla
     glPushMatrix();
     glBindTexture(GL_TEXTURE_2D, texturaPiedra);
     glTranslatef(-20, DISTANCIA_LATERAL, 0);
@@ -271,6 +286,7 @@ void showObjects(){
     }
     glPopMatrix();
 
+    // Dibujado del castillo
     glDisable(GL_TEXTURE_2D);
     glColor3ub(104, 105, 91);
     glPushMatrix();
@@ -280,6 +296,7 @@ void showObjects(){
     glCallList(listaFortaleza);
     glPopMatrix();
 
+    // Dibujado de los edificios
     glDisable(GL_TEXTURE_2D);
     glPushMatrix();
     glTranslatef(5,DISTANCIA_LATERAL-10, 0);
@@ -302,6 +319,7 @@ void showObjects(){
     glCallList(listaCasa1);
     glPopMatrix();
 
+    // Dibujado de la fuente
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texturaArenisca);
     glColor3ub(255, 255, 255);
@@ -311,6 +329,7 @@ void showObjects(){
     glCallList(listaPozo);
     glPopMatrix();
 
+    // Ejes de coordenadas
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_LIGHTING);
     glLineWidth(3);
@@ -330,15 +349,19 @@ void showObjects(){
     glEnable(GL_LIGHTING);
 }
 
-void display(void)
-{
+/**
+* Handler de display
+*/
+void display(void){
     keyops();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+
     struct CameraCoords cam = recalculateCamera();
     if (camara == MULTICAM){
+        // multicamara
         showMulticam();
     }else{
         glViewport(0, 0, screen_width, screen_height);
@@ -356,10 +379,12 @@ void display(void)
             1);
         showObjects();
     }
-
     glutSwapBuffers();
 }
 
+/**
+* Funcion que muestra la multicamara en varios viewports
+*/
 void showMulticam(){
     glViewport(0, 0, screen_width / 2, screen_height / 2);
     glLoadIdentity ();
@@ -417,7 +442,9 @@ void showMulticam(){
     showObjects();
 }
 
-/* Funcion que se llamara cada vez que se redimensione la ventana */
+/**
+* Funcion que se llamara cada vez que se redimensione la ventana
+*/
 void reshape(int w, int h)
 {
     screen_width = w;
@@ -428,24 +455,37 @@ void reshape(int w, int h)
     gluPerspective(45.0, w/(GLdouble)h, 0.1, 1000);
 }
 
-/* Funcion que controla los eventos de teclado */
+/**
+* Funcion de almacenamiento de las pulsaciones de teclas.
+*/
 void keyboard(unsigned char key, int x, int y){
     keyPressed[key] = true;
 }
 
+/**
+* Funcion que maneja el fin de la pulsacion de teclas.
+*/
 void keyboardUp(unsigned char key, int x, int y){
     keyPressed[key] = false;
 }
 
-void specialKey(int key, int x, int y)
-{
+/**
+* Funcion de almacenamiento de pulsaciones de teclas especiales
+*/
+void specialKey(int key, int x, int y){
     specialPressed[key] = true;
 }
 
+/**
+* Funcion que maneja el fin de la pulsación
+*/
 void specialKeyUp(int key, int x, int y){
     specialPressed[key] = false;
 }
 
+/**
+* Manejo avanzado del teclado
+*/
 void keyops(){
     // Tecla ESC
     if (keyPressed[27]){
@@ -525,6 +565,9 @@ void keyops(){
 
 }
 
+/**
+* Manejo de botones de raton
+*/
 void mouse(int button, int state, int x, int y)
 {
     if (button == GLUT_LEFT_BUTTON){
@@ -536,6 +579,9 @@ void mouse(int button, int state, int x, int y)
     glutPostRedisplay();
 }
 
+/**
+* Manejo de movimiento de raton
+*/
 void mouseMotion(int x, int y){
     if (camara == FP_CAM){
         if (x < mouse_x || x == 0){
@@ -558,28 +604,14 @@ void mouseMotion(int x, int y){
     glutPostRedisplay();
 }
 
-void setOrthographicProjection(){
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0, screen_width, screen_height, 0);
-    glMatrixMode(GL_MODELVIEW);
-}
-void resetPerspectiveProjection(){
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_DEPTH_TEST);
-}
-
 void idle(void)
 {
     glutPostRedisplay();
 }
 
+/**
+* Generación de una lista de dibujado de un fichero ASE
+*/
 int getListAse(const char *filename) {
 
     GLuint aseList = glGenLists(1);
@@ -600,6 +632,9 @@ int getListAse(const char *filename) {
     return aseList;
 }
 
+/**
+* Extraccion de los datos de las figuras de un fichero ASE
+*/
 int parseFile(const char *filename, Face **faces){
     fstream fich;
     *faces = NULL;
@@ -646,6 +681,9 @@ int parseFile(const char *filename, Face **faces){
     return numFaces;
 }
 
+/**
+* Calculo de la normal de una superficie
+*/
 void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *vertex3){
     float px = vertex2[0] - vertex1[0];
     float py = vertex2[1] - vertex1[1];
@@ -662,7 +700,9 @@ void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *ve
     normal[2] = nz / nmod;
 }
 
-
+/**
+* Generacion de la lista de dibujado del fragmento de muralla.
+*/
 void generateListMuralla(){
 
     listaMuralla = glGenLists(1);
@@ -817,7 +857,9 @@ void generateListMuralla(){
     glEndList();
 }
 
-
+/**
+* Generacion de la lista de dibujado de la torre lateral de la muralla.
+*/
 void generateListTorre(){
     listaTorre = glGenLists(1);
 
@@ -868,6 +910,9 @@ void generateListTorre(){
     glEndList();
 }
 
+/**
+* Generacion de la lista de dibujado del suelo.
+*/
 void generateListSuelo(){
     listaSuelo = glGenLists(1);
     GLfloat coordsSuelo[][3] = {
@@ -892,6 +937,9 @@ void generateListSuelo(){
     glEndList();
 }
 
+/**
+* Generacion de la lista de dibujado del cielo
+*/
 void generateListCielo(){
     listaCielo = glGenLists(1);
     GLfloat coordsCielo[][3] = {
@@ -917,6 +965,9 @@ void generateListCielo(){
     glEndList();
 }
 
+/**
+* Recalcula las coordenadas de las camaras moviles
+*/
 struct CameraCoords recalculateCamera(){
     // Recalculo de las coordenadas de la cámara en primera persona
     fp_coords.at_x = fp_coords.eye_x + cos(alpha) * cos(beta);
@@ -950,6 +1001,9 @@ struct CameraCoords recalculateCamera(){
     }
 }
 
+/**
+* Reproduce el sonido de pasos
+*/
 void playPasos(){
     if (!Mix_Playing(canal)){
         canal = Mix_PlayChannel(-1, pasos, 0);

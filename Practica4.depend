@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1484067926 source:c:\users\tote\projects\castle\practica4.cpp
+1484070744 source:c:\users\tote\projects\castle\practica4.cpp
 	<GL/freeglut.h>
 	<cstdio>
 	<cstdlib>
