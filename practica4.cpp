@@ -82,7 +82,7 @@ enum CameraType {
 /** VARIABLES GLOBALES **/
 GLdouble alpha = 0, beta = 0, alpha_rot = 0, beta_rot = 0;
 bool plane_mode = false;
-int screen_width, screen_height;
+int screen_width, screen_height,width1,height1;
 int mouse_x, mouse_y;
 GLdouble eyex = -5, eyey;
 GLuint listaMuralla,listaTorre,listaFortaleza,listaPozo,listaCasa1,listaCasa2, listaSuelo, listaCielo;
@@ -100,6 +100,7 @@ Mix_Music *musica;
 bool playing_music = true;
 Mix_Chunk *pasos;
 int canal;
+int HUDD=0;
 
 
 /** OPENGL HANDLERS **/
@@ -113,6 +114,7 @@ void specialKeyUp(int key, int x, int y);
 void keyops();
 void mouse(int button, int state, int x, int y);
 void mouseMotion(int x, int y);
+void HUD();
 
 /** FUNCTION HEADERS **/
 void showObjects();
@@ -129,6 +131,7 @@ void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *ve
 struct CameraCoords recalculateCamera();
 void playPasos();
 void showMulticam();
+
 
 
 /** Main Function **/
@@ -209,6 +212,11 @@ void init(void)
     musica = Mix_LoadMUS(MUSIC_SOUND);
     Mix_PlayMusic(musica,-1);
     pasos = Mix_LoadWAV(PASOS_SOUND);
+
+    /*Transparencia panel */
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
 }
 
 /**
@@ -348,6 +356,91 @@ void showObjects(){
     glPopMatrix();
     glEnable(GL_LIGHTING);
 }
+/**
+*Funcion para imprimir texto por pantalla
+*/
+void displayString(char *s)
+{
+    for (int i = 0; i < strlen (s); i++)
+    {
+        glutBitmapCharacter (GLUT_BITMAP_HELVETICA_10, s[i]);
+    }
+}
+/**
+*Vista Ortogonal
+*/
+void OrthographicProjection()
+{
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0,width1,height1,0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+}
+void resetPerspectiveProjection()
+{
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glDepthMask(GL_TRUE);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_DEPTH_TEST);
+}
+/**
+*Panel de Informacion
+*/
+void HUD(){
+    if(HUDD==1)
+    {
+        width1 = glutGet(GLUT_WINDOW_WIDTH);
+        height1  = glutGet(GLUT_WINDOW_HEIGHT);
+        char cadena[]="Salida";
+        OrthographicProjection();
+        glEnd();
+        glColor4f(0.0,0.0,0.0,0.7);
+        glBegin(GL_QUADS);
+        glVertex2f(10,10);
+        glVertex2f(220.0,10);
+        glVertex2f(220.0,150.0);
+        glVertex2f(10.0,150.0);
+        glEnd();
+        glColor4f(1.0,1.0,1.0,1.0);
+        glRasterPos2i(30,30);
+        displayString("TECLAS:\n");
+        glRasterPos2i(30,40);
+        displayString("W: avance");
+        glRasterPos2i(30,50);
+        displayString("S: retorceso");
+        glRasterPos2i(30,60);
+        displayString("A: movimiento a la izquierda");
+        glRasterPos2i(30,70);
+        displayString("D: movimiento a la derecha");
+        glRasterPos2i(30,80);
+        displayString("C: alternar vista entre camaras");
+        glRasterPos2i(30,90);
+        displayString("F: guardar imagen");
+        glRasterPos2i(30,100);
+        displayString("R: volver a posicion inicial");
+        glRasterPos2i(30,110);
+        displayString("Esc: salir");
+        glRasterPos2i(30,120);
+        displayString("M: deterner musica y reanudar la musica");
+        glRasterPos2i(30,130);
+        displayString("H: cerrar panel informacion");
+        glRasterPos2i(30,140);
+        displayString("P: cambiar vista");
+
+        resetPerspectiveProjection();
+    }
+
+
+}
 
 /**
 * Handler de display
@@ -379,6 +472,7 @@ void display(void){
             1);
         showObjects();
     }
+    HUD();
     glutSwapBuffers();
 }
 
@@ -536,6 +630,12 @@ void keyops(){
             Mix_PlayMusic(musica , -1);
         }
         playing_music = !playing_music;
+    }
+    // Panel de informacion
+    if (keyPressed['h'] || keyPressed['H']){
+            if(HUDD==1){ HUDD=0; }
+                else if(HUDD==0)
+                    { HUDD=1; }
     }
 
     /* Teclas especiales */

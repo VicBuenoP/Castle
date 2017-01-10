@@ -35,3 +35,39 @@
 	"Vertex.h"
 	<stdio.h>
 
+1484076989 source:c:\users\ookie\desktop\git\castle\src\face.cpp
+	"Face.h"
+	<stdio.h>
+	<GL/freeglut.h>
+
+1484076989 c:\users\ookie\desktop\git\castle\include\face.h
+	"Vertex.h"
+	"Normal.h"
+
+1484076989 c:\users\ookie\desktop\git\castle\include\vertex.h
+
+1484076989 c:\users\ookie\desktop\git\castle\include\normal.h
+
+1484076989 source:c:\users\ookie\desktop\git\castle\src\normal.cpp
+	<GL/freeglut.h>
+	"Normal.h"
+
+1484076989 source:c:\users\ookie\desktop\git\castle\src\vertex.cpp
+	<GL/freeglut.h>
+	"Vertex.h"
+	<stdio.h>
+
+1484079552 source:c:\users\ookie\desktop\git\castle\practica4.cpp
+	<GL/freeglut.h>
+	<cstdio>
+	<cstdlib>
+	<iostream>
+	<math.h>
+	<fstream>
+	<IL/ilut.h>
+	<SDL/SDL.h>
+	<SDL/SDL_mixer.h>
+	"Vertex.h"
+	"Face.h"
+	"Normal.h"
+
