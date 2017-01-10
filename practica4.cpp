@@ -101,6 +101,7 @@ bool playing_music = true;
 Mix_Chunk *pasos;
 int canal;
 int HUDD=0;
+int cenital=0;
 
 
 /** OPENGL HANDLERS **/
@@ -114,7 +115,6 @@ void specialKeyUp(int key, int x, int y);
 void keyops();
 void mouse(int button, int state, int x, int y);
 void mouseMotion(int x, int y);
-void HUD();
 
 /** FUNCTION HEADERS **/
 void showObjects();
@@ -131,7 +131,7 @@ void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *ve
 struct CameraCoords recalculateCamera();
 void playPasos();
 void showMulticam();
-
+void HUD();
 
 
 /** Main Function **/
@@ -392,6 +392,23 @@ void resetPerspectiveProjection()
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 }
+
+/**
+* Camara Cenital
+*/
+void camaraCenital()
+{
+    width1= glutGet(GLUT_WINDOW_WIDTH);
+    height1 = glutGet(GLUT_WINDOW_HEIGHT);
+    glViewport(0, 0, width1, height1);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glOrtho(50.0, -50.0, 25.0, -25.0, 10.0, 300.0);
+
+    gluLookAt(0,0,100, 0.1,0.01,0.00,1,0,1);
+
+}
 /**
 *Panel de Informacion
 */
@@ -453,25 +470,38 @@ void display(void){
 
 
     struct CameraCoords cam = recalculateCamera();
-    if (camara == MULTICAM){
-        // multicamara
-        showMulticam();
-    }else{
-        glViewport(0, 0, screen_width, screen_height);
-        // Posicionado de la cámara
-        // Posicionado de la cámara
-        gluLookAt(
-            cam.eye_x, // Coordenada X de la cámara
-            cam.eye_y, // Coordenada Y de la cámara
-            cam.eye_z, // Coordenada Z de la cámara
-            cam.at_x, /* Puntos donde mira la cámara */
-            cam.at_y,
-            cam.at_z,
-            0.0, /* Orientación de la cámara */
-            0.0,
-            1);
-        showObjects();
+    if(cenital==1)
+    {
+        camaraCenital();
+
+        glPushMatrix();
+        glDisable(GL_TEXTURE_2D);
+        glColor3f(1,0,0);
+        glTranslatef(fp_coords.eye_x,fp_coords.eye_y,fp_coords.eye_z);
+        //cube(2.0);
+        glColor3f(1,0,0);
+        glPopMatrix();
     }
+    else
+            if (camara == MULTICAM){
+                // multicamara
+                showMulticam();
+            }else{
+                glViewport(0, 0, screen_width, screen_height);
+                // Posicionado de la cámara
+                // Posicionado de la cámara
+                gluLookAt(
+                    cam.eye_x, // Coordenada X de la cámara
+                    cam.eye_y, // Coordenada Y de la cámara
+                    cam.eye_z, // Coordenada Z de la cámara
+                    cam.at_x, /* Puntos donde mira la cámara */
+                    cam.at_y,
+                    cam.at_z,
+                    0.0, /* Orientación de la cámara */
+                    0.0,
+                    1);
+                showObjects();
+            }
     HUD();
     glutSwapBuffers();
 }
@@ -588,25 +618,29 @@ void keyops(){
 
     // Funciones de movimiento con teclas
     if (keyPressed['w'] || keyPressed['W']){
-        fp_coords.eye_x += COS_INCREMENT;
-        fp_coords.eye_y += SIN_INCREMENT;
-        playPasos();
-    }
+        if(cenital!=0){
+            fp_coords.eye_x += COS_INCREMENT;
+            fp_coords.eye_y += SIN_INCREMENT;
+            playPasos();
+    }}
     if (keyPressed['s'] || keyPressed['S']){
-        fp_coords.eye_x -= COS_INCREMENT;
-        fp_coords.eye_y -= SIN_INCREMENT;
-        playPasos();
-    }
+        if(cenital!=0){
+            fp_coords.eye_x -= COS_INCREMENT;
+            fp_coords.eye_y -= SIN_INCREMENT;
+            playPasos();
+    }}
     if (keyPressed['d'] || keyPressed['D']){
-        fp_coords.eye_x += SIN_INCREMENT;
-        fp_coords.eye_y -= COS_INCREMENT;
-        playPasos();
-    }
+        if(cenital!=0){
+            fp_coords.eye_x += SIN_INCREMENT;
+            fp_coords.eye_y -= COS_INCREMENT;
+            playPasos();
+    }}
     if (keyPressed['a'] || keyPressed['A']){
-        fp_coords.eye_x -= SIN_INCREMENT;
-        fp_coords.eye_y += COS_INCREMENT;
-        playPasos();
-    }
+        if(cenital!=0){
+            fp_coords.eye_x -= SIN_INCREMENT;
+            fp_coords.eye_y += COS_INCREMENT;
+            playPasos();
+    }}
 
     // Cambio de camara
     if (keyPressed['c'] || keyPressed['C']){
@@ -619,6 +653,10 @@ void keyops(){
         plane_mode = true;
         keyPressed['p'] = false;
         keyPressed['P'] = false;
+        if(cenital==1)
+        { cenital=0; }
+        else if(cenital==0)
+        { cenital=1; }
     }
 
     if (keyPressed['m'] || keyPressed['M']){
