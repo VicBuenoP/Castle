@@ -74,6 +74,7 @@ enum CameraType {
     C3_CAM,
     C4_CAM,
     ROT_CAM,
+    MULTICAM,
     NUM_CAMS // Elemento para contar las cámaras disponibles
 };
 
@@ -111,7 +112,7 @@ void keyops();
 void mouse(int button, int state, int x, int y);
 void mouseMotion(int x, int y);
 
-
+void showObjects();
 void setOrthographicProjection();
 void resetPerspectiveProjection();
 void loadImage(const char *filename, GLuint *width, GLuint *height, ILubyte **data);
@@ -126,6 +127,7 @@ void idle(void);
 void calcNormal(GLfloat *normal, GLfloat *vertex1, GLfloat *vertex2, GLfloat *vertex3);
 struct CameraCoords recalculateCamera();
 void playPasos();
+void showMulticam();
 
 
 /** Main Function **/
@@ -233,33 +235,13 @@ GLuint loadTexture(const char *filename){
     return textura;
 }
 
-void display(void)
-{
-    keyops();
+void showObjects(){
     GLfloat lightPosition[][4] = {
-        { -20.0f, DISTANCIA_LATERAL, 20.0f, 0},
-        { DISTANCIA_FRONTAL, DISTANCIA_LATERAL, 20.0f, 0},
-        { DISTANCIA_FRONTAL, -DISTANCIA_LATERAL, 20.0f, 0},
-        { -20.0f, -DISTANCIA_LATERAL, 20.0f, 0}
+    { -20.0f, DISTANCIA_LATERAL, 20.0f, 0},
+    { DISTANCIA_FRONTAL, DISTANCIA_LATERAL, 20.0f, 0},
+    { DISTANCIA_FRONTAL, -DISTANCIA_LATERAL, 20.0f, 0},
+    { -20.0f, -DISTANCIA_LATERAL, 20.0f, 0}
     }; // posición en la escena
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    struct CameraCoords cam = recalculateCamera();
-
-    // Posicionado de la cámara
-    // Posicionado de la cámara
-    gluLookAt(
-        cam.eye_x, // Coordenada X de la cámara
-        cam.eye_y, // Coordenada Y de la cámara
-        cam.eye_z, // Coordenada Z de la cámara
-        cam.at_x, /* Puntos donde mira la cámara */
-        cam.at_y,
-        cam.at_z,
-        0.0, /* Orientación de la cámara */
-        0.0,
-        1);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition[0]); // a la luz 0
     glLightfv(GL_LIGHT1, GL_POSITION, lightPosition[1]); // a la luz 1
     glLightfv(GL_LIGHT2, GL_POSITION, lightPosition[2]); // a la luz 2
@@ -346,7 +328,93 @@ void display(void)
     glEnd();
     glPopMatrix();
     glEnable(GL_LIGHTING);
+}
+
+void display(void)
+{
+    keyops();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    struct CameraCoords cam = recalculateCamera();
+    if (camara == MULTICAM){
+        showMulticam();
+    }else{
+        glViewport(0, 0, screen_width, screen_height);
+        // Posicionado de la cámara
+        // Posicionado de la cámara
+        gluLookAt(
+            cam.eye_x, // Coordenada X de la cámara
+            cam.eye_y, // Coordenada Y de la cámara
+            cam.eye_z, // Coordenada Z de la cámara
+            cam.at_x, /* Puntos donde mira la cámara */
+            cam.at_y,
+            cam.at_z,
+            0.0, /* Orientación de la cámara */
+            0.0,
+            1);
+        showObjects();
+    }
+
     glutSwapBuffers();
+}
+
+void showMulticam(){
+    glViewport(0, 0, screen_width / 2, screen_height / 2);
+    glLoadIdentity ();
+    gluLookAt(
+        c1_coords.eye_x, // Coordenada X de la cámara
+        c1_coords.eye_y, // Coordenada Y de la cámara
+        c1_coords.eye_z, // Coordenada Z de la cámara
+        c1_coords.at_x, /* Puntos donde mira la cámara */
+        c1_coords.at_y,
+        c1_coords.at_z,
+        0.0, /* Orientación de la cámara */
+        0.0,
+        1);
+    showObjects();
+
+    glViewport(screen_width / 2, 0, screen_width / 2, screen_height / 2);
+    glLoadIdentity ();
+    gluLookAt(
+        c2_coords.eye_x, // Coordenada X de la cámara
+        c2_coords.eye_y, // Coordenada Y de la cámara
+        c2_coords.eye_z, // Coordenada Z de la cámara
+        c2_coords.at_x, /* Puntos donde mira la cámara */
+        c2_coords.at_y,
+        c2_coords.at_z,
+        0.0, /* Orientación de la cámara */
+        0.0,
+        1);
+    showObjects();
+
+    glViewport(0, screen_height / 2, screen_width / 2, screen_height / 2);
+    glLoadIdentity ();
+    gluLookAt(
+        c3_coords.eye_x, // Coordenada X de la cámara
+        c3_coords.eye_y, // Coordenada Y de la cámara
+        c3_coords.eye_z, // Coordenada Z de la cámara
+        c3_coords.at_x, /* Puntos donde mira la cámara */
+        c3_coords.at_y,
+        c3_coords.at_z,
+        0.0, /* Orientación de la cámara */
+        0.0,
+        1);
+    showObjects();
+    glViewport(screen_width / 2, screen_height / 2, screen_width / 2, screen_height / 2);
+    glLoadIdentity ();
+    gluLookAt(
+        c4_coords.eye_x, // Coordenada X de la cámara
+        c4_coords.eye_y, // Coordenada Y de la cámara
+        c4_coords.eye_z, // Coordenada Z de la cámara
+        c4_coords.at_x, /* Puntos donde mira la cámara */
+        c4_coords.at_y,
+        c4_coords.at_z,
+        0.0, /* Orientación de la cámara */
+        0.0,
+        1);
+    showObjects();
 }
 
 /* Funcion que se llamara cada vez que se redimensione la ventana */
