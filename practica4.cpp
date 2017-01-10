@@ -363,7 +363,7 @@ void displayString(char *s)
 {
     for (int i = 0; i < strlen (s); i++)
     {
-        glutBitmapCharacter (GLUT_BITMAP_HELVETICA_10, s[i]);
+        glutBitmapCharacter (GLUT_BITMAP_HELVETICA_18, s[i]);
     }
 }
 /**
@@ -400,46 +400,43 @@ void HUD(){
     {
         width1 = glutGet(GLUT_WINDOW_WIDTH);
         height1  = glutGet(GLUT_WINDOW_HEIGHT);
-        char cadena[]="Salida";
         OrthographicProjection();
         glEnd();
-        glColor4f(0.0,0.0,0.0,0.7);
-        glBegin(GL_QUADS);
+        glColor4f(0.0,0.0,0.0,0.7); //Color del fondo
+        glBegin(GL_QUADS); // Creamos el panel
         glVertex2f(10,10);
-        glVertex2f(220.0,10);
-        glVertex2f(220.0,150.0);
-        glVertex2f(10.0,150.0);
+        glVertex2f(330.0,10);
+        glVertex2f(330.0,270.0);
+        glVertex2f(10.0,270.0);
         glEnd();
-        glColor4f(1.0,1.0,1.0,1.0);
+        glColor4f(1.0,1.0,1.0,1.0); // Color del texto
         glRasterPos2i(30,30);
         displayString("TECLAS:\n");
-        glRasterPos2i(30,40);
-        displayString("W: avance");
         glRasterPos2i(30,50);
-        displayString("S: retorceso");
-        glRasterPos2i(30,60);
-        displayString("A: movimiento a la izquierda");
+        displayString("W: Avance");
         glRasterPos2i(30,70);
-        displayString("D: movimiento a la derecha");
-        glRasterPos2i(30,80);
-        displayString("C: alternar vista entre camaras");
+        displayString("S: Retorceso");
         glRasterPos2i(30,90);
-        displayString("F: guardar imagen");
-        glRasterPos2i(30,100);
-        displayString("R: volver a posicion inicial");
+        displayString("A: Movimiento a la izquierda");
         glRasterPos2i(30,110);
-        displayString("Esc: salir");
-        glRasterPos2i(30,120);
-        displayString("M: deterner musica y reanudar la musica");
+        displayString("D: Movimiento a la derecha");
         glRasterPos2i(30,130);
-        displayString("H: cerrar panel informacion");
-        glRasterPos2i(30,140);
-        displayString("P: cambiar vista");
+        displayString("C: Alternar la vista entre las camaras");
+        glRasterPos2i(30,150);
+        displayString("F: Guardar imagen");
+        glRasterPos2i(30,170);
+        displayString("M: Deterner o Reanudar la Musica");
+        glRasterPos2i(30,190);
+        displayString("R: Volver a la posicion inicial");
+        glRasterPos2i(30,210);
+        displayString("H: Cerrar el Panel de Informacion");
+        glRasterPos2i(30,230);
+        displayString("P: Cambiar la vista");
+        glRasterPos2i(30,250);
+        displayString("Esc:Salir");
 
-        resetPerspectiveProjection();
+        resetPerspectiveProjection(); // Volvemos a la perspectiva anterior
     }
-
-
 }
 
 /**
@@ -606,6 +603,12 @@ void keyops(){
         fp_coords.eye_x -= SIN_INCREMENT;
         fp_coords.eye_y += COS_INCREMENT;
         playPasos();
+    }
+    if (keyPressed['r'] || keyPressed['R']){
+        fp_coords.eye_x = 0;
+        fp_coords.eye_y = 0;
+        beta = INITIAL_BETA;
+        alpha = INITIAL_ALPHA;
     }
 
     // Cambio de camara
