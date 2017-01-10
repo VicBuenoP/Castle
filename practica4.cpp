@@ -633,9 +633,9 @@ void keyops(){
     }
     // Panel de informacion
     if (keyPressed['h'] || keyPressed['H']){
-            if(HUDD==1){ HUDD=0; }
-                else if(HUDD==0)
-                    { HUDD=1; }
+            HUDD = !HUDD;
+            keyPressed['h'] = false;
+            keyPressed['H'] = false;
     }
 
     /* Teclas especiales */
