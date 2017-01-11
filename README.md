@@ -1,11 +1,11 @@
-# Castle OpenGL
+﻿# Castle OpenGL
 
 2017 - ETSISI UPM - Grado en ingeniería de computadores
 
 ## Author
 
 - Jesús Jorge Serrano (j.jorge@alumnos.upm.es)
-
+- Teodora María Dinu (@Ooki46)
 ## Summary
 
 Práctica de la asignatura de Gráficos de Computadores 2017.
